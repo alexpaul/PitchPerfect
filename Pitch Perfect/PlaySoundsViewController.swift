@@ -16,56 +16,57 @@ class PlaySoundsViewController: UIViewController {
     var audioEngine: AVAudioEngine!
     var audioFile: AVAudioFile!
 
+    // MARK: View Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Set title 
+        self.title = "Choose an Effect"
         
         audioPlayer = AVAudioPlayer(contentsOfURL: receivedAudio.filePathURL, error: nil)
         audioPlayer.enableRate = true // enableRate MUST be set to true in order to adjust the playback rate
         
         audioEngine = AVAudioEngine() // initialize new Engine
-        //let audioFile = AVAudioFile(forReading: receivedAudio.filePathURL, error: nil)
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
-    
+    // MARK: Actions
     @IBAction func slowPlayButtonPressed(sender: UIButton) {
+        stopAllAudioActions()
         playAudioWithRate(rate: 0.5)
     }
     
     @IBAction func fastPlayButtonPressed(sender: UIButton) {
+        stopAllAudioActions()
         playAudioWithRate(rate: 2.0)
     }
     
     @IBAction func playChipmunkAudio(sender: UIButton) {
+        stopAllAudioActions()
         playAudioWithVariablePitch(pitch: 1000)
     }
     
     @IBAction func playDarthVaderAudio(sender: UIButton) {
+        stopAllAudioActions()
         playAudioWithVariablePitch(pitch: -1000)
     }
     
     @IBAction func stopAudioButtonPressed(sender: UIButton) {
-        audioPlayer.stop()
+        stopAllAudioActions()
     }
     
     // MARK: Helper Methods
+    
+    // For Slow and Fast Speed
     func playAudioWithRate(#rate: Float) {
+        audioPlayer.currentTime = 0.0
         audioPlayer.rate = rate // range 0.5 for half the normal speed to 2.0 double the normal speed, 1.0 is normal speed
         audioPlayer.prepareToPlay() // pre loads the buffer
-        audioPlayer.stop()
         audioPlayer.play() // plays sound asynchronously
     }
     
+    // For High and Low Pitch Sounds
     func playAudioWithVariablePitch(#pitch: Float) {
         let audioFile = AVAudioFile(forReading: receivedAudio.filePathURL, error: nil)
-        
-        audioPlayer.stop()
-        audioEngine.stop()
-        audioEngine.reset()
         
         var audioPlayerNode = AVAudioPlayerNode()
         audioEngine.attachNode(audioPlayerNode)
@@ -84,6 +85,12 @@ class PlaySoundsViewController: UIViewController {
         audioEngine.startAndReturnError(nil)
         
         audioPlayerNode.play()
+    }
+    
+    func stopAllAudioActions() {
+        audioPlayer.stop()
+        audioEngine.stop()
+        audioEngine.reset()
     }
     
 

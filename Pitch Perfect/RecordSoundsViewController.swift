@@ -14,7 +14,9 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
     
     @IBOutlet weak var recordingInProgress: UILabel!
     @IBOutlet weak var stopButton: UIButton!
+    @IBOutlet weak var pauseButton: UIButton!
     @IBOutlet weak var microphoneButton: UIButton!
+    @IBOutlet weak var microphoneLabel: UILabel!
     
     var audioRecorder: AVAudioRecorder!
     var recordedAudio: RecordedAudio!
@@ -22,7 +24,10 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(true)
         self.stopButton.hidden = true
+        self.pauseButton.hidden = true
         self.microphoneButton.enabled = true
+        self.microphoneLabel.hidden = false
+        self.recordingInProgress.text = "recording" // set to default in case pause was last value
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
@@ -34,6 +39,9 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
     }
     
     @IBAction func recordAudioButtonPressed(sender: UIButton) {
+        // Hide the microphone label when user taps on microphone
+        microphoneLabel.hidden = true
+        
         // Get the App's Directory Path
         let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
         
@@ -67,6 +75,9 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
         // Show the stop button 
         self.stopButton.hidden = false
         
+        // Show the pause button 
+        self.pauseButton.hidden = false
+        
         // Disable the microphone 
         self.microphoneButton.enabled = false
     }
@@ -85,12 +96,23 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
         self.microphoneButton.enabled = true
     }
     
+    @IBAction func pauseRecordingButtonPressed(sender: UIButton) {
+        if audioRecorder.recording == true {
+            // Pause Recording 
+            audioRecorder.pause()
+            self.recordingInProgress.text = "paused"
+        }else {
+            // Resume Recording 
+            audioRecorder.record()
+            self.recordingInProgress.text = "recording..."
+        }
+    }
+    
+    
     // MARK: AVAudioRecorderDelegate
     func audioRecorderDidFinishRecording(recorder: AVAudioRecorder!, successfully flag: Bool) {
         if flag {
-            recordedAudio = RecordedAudio()
-            recordedAudio.filePathURL = recorder.url
-            recordedAudio.title = recorder.url.lastPathComponent // gets the title
+            recordedAudio = RecordedAudio(filePathURL: recorder.url, title: recorder.url.lastPathComponent!)
             
             self.performSegueWithIdentifier("stopRecording", sender: recordedAudio)
         }else {
