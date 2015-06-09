@@ -12,6 +12,7 @@ import AVFoundation
 class PlaySoundsViewController: UIViewController {
     
     var audioPlayer: AVAudioPlayer!
+    var audioPlayer2: AVAudioPlayer! // for echo effect
     var receivedAudio: RecordedAudio!
     var audioEngine: AVAudioEngine!
     var audioFile: AVAudioFile!
@@ -20,12 +21,11 @@ class PlaySoundsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Set title 
+        // Set title for this view controller
         self.title = "Choose an Effect"
         
         audioPlayer = AVAudioPlayer(contentsOfURL: receivedAudio.filePathURL, error: nil)
         audioPlayer.enableRate = true // enableRate MUST be set to true in order to adjust the playback rate
-        
         audioEngine = AVAudioEngine() // initialize new Engine
     }
     
@@ -48,6 +48,37 @@ class PlaySoundsViewController: UIViewController {
     @IBAction func playDarthVaderAudio(sender: UIButton) {
         stopAllAudioActions()
         playAudioWithVariablePitch(pitch: -1000)
+    }
+    
+    @IBAction func playEchoAudio(sender: UIButton) {
+        stopAllAudioActions()
+        
+        audioPlayer.currentTime = 0.0
+        audioPlayer.play()
+        audioPlayer.numberOfLoops = 3 // number of times to "echo" audio after initial play
+    }
+    
+    @IBAction func playReverbAudio(sender: UIButton) {
+        stopAllAudioActions()
+        
+        let audioFile = AVAudioFile(forReading: receivedAudio.filePathURL, error: nil)
+        
+        var audioPlayerNode = AVAudioPlayerNode()
+        audioEngine.attachNode(audioPlayerNode)
+        
+        let reverb = AVAudioUnitReverb() // initialize an instance of AVAudioUnitReverb
+        reverb.wetDryMix = 50 // blend of the wet and dry signals, 0% all dry, 100% all wet
+        
+        audioEngine.attachNode(reverb) // take ownership of unitReverb
+        
+        audioEngine.connect(audioPlayerNode, to: reverb, format: audioFile.processingFormat)
+        audioEngine.connect(reverb, to: audioEngine.outputNode, format: audioFile.processingFormat)
+        
+        audioPlayerNode.scheduleFile(audioFile, atTime: nil, completionHandler: nil)
+
+        audioEngine.startAndReturnError(nil)
+        
+        audioPlayerNode.play()
     }
     
     @IBAction func stopAudioButtonPressed(sender: UIButton) {
@@ -92,6 +123,5 @@ class PlaySoundsViewController: UIViewController {
         audioEngine.stop()
         audioEngine.reset()
     }
-    
 
 }
