@@ -12,7 +12,6 @@ import AVFoundation
 class PlaySoundsViewController: UIViewController {
     
     var audioPlayer: AVAudioPlayer!
-    var audioPlayer2: AVAudioPlayer! // for echo effect
     var receivedAudio: RecordedAudio!
     var audioEngine: AVAudioEngine!
     var audioFile: AVAudioFile!
